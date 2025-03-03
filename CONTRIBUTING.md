@@ -37,6 +37,21 @@ We use Jest for testing. After implementing your contribution, write tests for i
 
 Before submitting your PR, run `yarn test:unit` to make sure there are no (unintended) breaking changes.
 
+### E2E Testing
+
+Using [act](https://github.com/nektos/act) (and Docker), you can run integration tests locally.
+
+```sh
+$ open -a Docker
+$ brew install act
+$ act --container-architecture linux/amd64
+
+[Test - E2E/test-e2e  ] ⭐ Run Set up job
+[Test - E2E/test-e2e  ] 🚀  Start image=nektos/act-environments-ubuntu:18.04
+[Test - E2E/test-e2e  ]   🐳  docker pull image=amazon/dynamodb-local platform=linux/amd64 username= forcePull=true
+...
+```
+
 ### Documentation
 
 The documentation lives in the README.md. Be sure to document any API changes you implement.

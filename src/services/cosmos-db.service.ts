@@ -2,8 +2,8 @@ import { DynamoDBClient, QueryCommand, GetItemCommand, PutItemCommand, UpdateIte
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { z } from 'zod';
 import { fromPromise } from 'neverthrow';
-import { isArray, isBoolean, isEmptyArray, isNonEmptyString, isNull, isNumber, isObject, isUndefined, objectIsEmpty } from '@/utils';
-import { BooleanFilter, DateFilter, NumberFilter, QueryMode, StringFilter } from '@/types/filters';
+import { isArray, isBoolean, isEmptyArray, isNonEmptyString, isNull, isNumber, isObject, isUndefined, objectIsEmpty } from '../utils';
+import { BooleanFilter, DateFilter, NumberFilter, QueryMode, StringFilter } from '../types/filters';
 
 export type TFilter = StringFilter & NumberFilter & BooleanFilter & DateFilter;
 
@@ -167,8 +167,7 @@ export class BaseModel<T extends Base = any> {
     const expressionAttributeNames = this.buildExpressionAttributeNames(select);
     const { expression: filterExpression, values } = this.buildFilterExpression(where);
 
-    // @ts-expect-error - TODO
-    const parseWhereClause = where => {
+    const parseWhereClause = (where = {}) => {
       const filterExpressions = [];
       const expressionAttributeNames = {};
       const expressionAttributeValues = {};
@@ -199,11 +198,15 @@ export class BaseModel<T extends Base = any> {
       TableName: this.options.tableName,
       Limit: take ?? 100,
       ExclusiveStartKey: nextCursor ? JSON.parse(nextCursor) : undefined,
-      FilterExpression: whereClause.filterExpression,
-      ExpressionAttributeNames: {
-        ...whereClause.expressionAttributeNames,
-        ...(Object.keys(expressionAttributeNames).length > 0 ? expressionAttributeNames : {}),
-      },
+      ...(whereClause.filterExpression && {
+        FilterExpression: whereClause.filterExpression,
+      }),
+      ...(Object.keys(expressionAttributeNames).length > 0 && {
+        ExpressionAttributeNames: {
+          ...whereClause.expressionAttributeNames,
+          ...expressionAttributeNames,
+        },
+      }),
       ExpressionAttributeValues: {
         ...whereClause.expressionAttributeValues,
       },

@@ -3,6 +3,7 @@ name: Test - Unit
 on:
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 env:
   NODE_VERSION: 20.x

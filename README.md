@@ -270,6 +270,14 @@ const result = orm.user.delete({
 - Observability - query logging
 - Filtering on more complex data types such as enums, enum arrays, string arrays & number arrays
 
+```
+Notes:
+yarn build && rm -rf local/node_modules/dynamo-query/dist && mkdir local/node_modules/dynamo-query/dist && cp dist/* local/node_modules/dynamo-query/dist
+
+brew install act
+act --container-architecture linux/amd64
+```
+
 ## Contributing
 
 We welcome contributions from the community! If you're interested in contributing to this project, please read the [CONTRIBUTING.md](./CONTRIBUTING.md) file to get started.
