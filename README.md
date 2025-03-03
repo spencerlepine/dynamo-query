@@ -3,27 +3,21 @@
 </p>
 
 <div align="center">
-  <h1>Cosmox</h1>
-  <a href="#"><img src="https://img.shields.io/npm/v/cosmox.svg?style=flat" /></a>
+  <h1>Dynamo-Query</h1>
+  <a href="#"><img src="https://img.shields.io/npm/v/dynamo-query.svg?style=flat" /></a>
   <a href="#"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT%202-blue" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" /></a>
   <br />
   <br />
 </div>
 
-> This is a type-safe ORM for Azure CosmosDB NoSQL, inpired by [Prisma.io](https://www.prisma.io/)
+> This is a type-safe ORM for AWS DynamoDB NoSQL, inspired by [Prisma.io](https://www.prisma.io/)
 
-This package is for you if you're building data-driven applications and you're using Azure CosmosDB NoSQL as the main database.
+This package is for you if you're building data-driven applications and you're using AWS DynamoDB NoSQL as the main database.
 
-If you're tired of writing raw SQL for querying Azure CosmosDB NoSQL database with complex filters, then this package is for you, too.
+If you're tired of writing raw SQL for querying AWS DynamoDB NoSQL database with complex filters, then this package is for you, too.
 
-## 🤔 Use cases:
-
-- Data analytics dashboard
-- E-commerce
-- IoT dashboard
-
-## 🧠 Why Cosmox over `@azure/cosmos`?
+## 🧠 Why Dynamo-Query over `@aws-sdk/client-dynamodb`?
 
 - ✅ Type-safe advanced filtering
 - 💪 Build-in SQL query-builder
@@ -35,15 +29,15 @@ If you're tired of writing raw SQL for querying Azure CosmosDB NoSQL database wi
 Install this package
 
 ```shell
-npm install cosmox
-yarn install cosmox
-pnpm install cosmox
+npm install dynamo-query
+yarn install dynamo-query
+pnpm install dynamo-query
 ```
 
 Instantiate the client
 
 ```typescript
-import { createClient } from 'cosmox';
+import { createClient } from 'dynamo-query';
 
 type User = {
   id: string;
@@ -62,6 +56,7 @@ type Post = {
 };
 
 // Example 1 - Using connection string
+// TODO
 const orm = createClient({
   database: '<DATABASE_ID>',
   connectionString: '<DB_CONNECTION_STRING>',
@@ -71,7 +66,7 @@ const orm = createClient({
   }),
 });
 
-// Example 2 - Using CosmosDB client options
+// Example 2 - Using DynamoDB client options
 const orm = createClient({
   database: '<DATABASE_ID>',
   // same type-definition as "CosmosClientOptions" from "@azure/cosmos"
@@ -208,9 +203,9 @@ const result = orm.user.delete({
 });
 ```
 
-## 😀 Roadmap
+## 📝 Roadmap
 
-- ~~Core Query builder~~
+- Core Query builder
 - Bulk create / update operations
 - Observability - query logging
 - Filtering on more complex data types such as enums, enum arrays, string arrays & number arrays
@@ -221,8 +216,8 @@ We welcome contributions from the community! If you're interested in contributin
 
 ## Disclaimer
 
-This project is a fork of [Mingyang-Li/cosmox](https://github.com/Mingyang-Li/cosmox) (credit to Mingyang Li), inspired by Prisma, and is not an official AWS product. Provided "as
-is" without warranty.
+This project is a fork of [Mingyang-Li/dynamo-query](https://github.com/Mingyang-Li/dynamo-query) (credit to Mingyang Li), inspired by Prisma, and is not an official AWS product.
+Provided "as is" without warranty.
 
 ## License
 
