@@ -1,0 +1,56 @@
+{
+  "name": "cosmox",
+  "version": "1.0.3",
+  "keywords": [
+    "cosmosdb",
+    "prisma",
+    "orm",
+    "sdk",
+    "nosql"
+  ],
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mingyang-Li/cosmox.git"
+  },
+  "homepage": "https://github.com/Mingyang-Li/cosmox#readme",
+  "scripts": {
+    "format:check": "prettier --check .",
+    "format:write": "prettier --write .",
+    "test:unit": "vitest --config vitest.config.unit.ts",
+    "test:e2e": "vitest --config vitest.config.e2e.ts",
+    "build": "tsup --dts",
+    "dev": "tsup src/index.ts --watch",
+    "prepare": "husky"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "packageManager": "pnpm@9.8.10",
+  "dependencies": {
+    "@azure/cosmos": "4.2.0",
+    "neverthrow": "8.1.1",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.1",
+    "husky": "9.1.7",
+    "prettier": "3.4.2",
+    "tsup": "8.3.5",
+    "typescript": "5.7.2",
+    "vitest": "2.1.8"
+  }
+}
