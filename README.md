@@ -58,26 +58,86 @@ type Post = {
 // Example 1 - Using connection string
 // TODO
 const orm = createClient({
-  database: '<DATABASE_ID>',
-  connectionString: '<DB_CONNECTION_STRING>',
+  region: 'us-east-1', // AWS region
+  credentials: {
+    accessKeyId: '<AWS_ACCESS_KEY_ID>',
+    secretAccessKey: '<AWS_SECRET_ACCESS_KEY>',
+  },
   models: t => ({
-    user: t.createModel<User>({ container: '<USER_CONTAINER_ID>' }),
-    post: t.createModel<Post>({ container: '<POST_CONTAINER_ID>' }),
+    user: t.createModel<User>({
+      tableName: 'Users',
+      partitionKey: 'userId',
+      options: { fields: ['name', 'email', 'createdAt'] },
+    }),
+    post: t.createModel<Post>({
+      tableName: 'Posts',
+      partitionKey: 'postId',
+      sortKey: 'createdAt',
+      options: { fields: ['title', 'content', 'authorId'] },
+    }),
   }),
 });
 
-// Example 2 - Using DynamoDB client options
+// Example 2 - Using custom endpoint (useful for local development/testing)
 const orm = createClient({
-  database: '<DATABASE_ID>',
-  // same type-definition as "CosmosClientOptions" from "@azure/cosmos"
-  cosmosClientOptions: {
-    endpoint: '<EXAMPLE_ENDPOINT>',
+  region: 'us-east-1',
+  endpoint: 'http://localhost:8000', // Custom endpoint for local DynamoDB
+  credentials: {
+    accessKeyId: 'fakeMyKeyId',
+    secretAccessKey: 'fakeSecretAccessKey',
   },
   models: t => ({
-    user: t.createModel<User>({ container: '<USER_CONTAINER_ID>' }),
-    post: t.createModel<Post>({ container: '<POST_CONTAINER_ID>' }),
+    user: t.createModel<User>({
+      tableName: 'Users',
+      partitionKey: 'userId',
+      // TODO - only boolean.
+      options: { fields: ['name', 'email', 'createdAt'] },
+    }),
+    post: t.createModel<Post>({
+      tableName: 'Posts',
+      partitionKey: 'postId',
+      sortKey: 'createdAt',
+      // TODO
+      options: { fields: ['title', 'content', 'authorId'] },
+    }),
   }),
 });
+
+// Example 3 - With additional model options
+const orm = createClient({
+  region: 'us-east-1',
+  credentials: {
+    accessKeyId: '<AWS_ACCESS_KEY_ID>',
+    secretAccessKey: '<AWS_SECRET_ACCESS_KEY>',
+  },
+  models: t => ({
+    user: t.createModel<User>({
+      tableName: '<USER_TABLE_NAME>',
+      partitionKey: 'id',
+      options: {
+        fields: {
+          id: true, // Auto-generate IDs
+          timestamp: true, // Auto-generate createdAt/updatedAt
+        },
+      },
+    }),
+    post: t.createModel<Post>({
+      tableName: '<POST_TABLE_NAME>',
+      partitionKey: 'id',
+      sortKey: 'createdAt',
+      options: {
+        fields: false, // Disable auto-generated fields
+      },
+    }),
+  }),
+});
+
+// Notes:
+// - The 'partitionKey' is required and must match an attribute in your table
+// - The 'sortKey' is optional and enables range queries when specified
+// - When using locally, set endpoint to 'http://localhost:8000' (or your DynamoDB Local port)
+// - Credentials are required even for local development, but can be dummy values
+// - Tables must be created beforehand with matching partition/sort keys
 ```
 
 Make queries with simple filters
