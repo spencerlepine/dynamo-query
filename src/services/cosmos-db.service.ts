@@ -1,4 +1,4 @@
-import { DynamoDBClient, QueryCommand, GetItemCommand, PutItemCommand, UpdateItemCommand, DeleteItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, QueryCommand, GetItemCommand, PutItemCommand, UpdateItemCommand, DeleteItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { z } from 'zod';
 import { fromPromise } from 'neverthrow';
@@ -167,17 +167,45 @@ export class BaseModel<T extends Base = any> {
     const expressionAttributeNames = this.buildExpressionAttributeNames(select);
     const { expression: filterExpression, values } = this.buildFilterExpression(where);
 
-    const command = new QueryCommand({
+    // @ts-expect-error - TODO
+    const parseWhereClause = where => {
+      const filterExpressions = [];
+      const expressionAttributeNames = {};
+      const expressionAttributeValues = {};
+
+      for (const [key, condition] of Object.entries(where)) {
+        // @ts-expect-error - TODO
+        if (condition.contains) {
+          const attrName = `#${key}`;
+          const attrValue = `:${key}Val`;
+          filterExpressions.push(`contains(${attrName}, ${attrValue})`);
+          // @ts-expect-error - TODO
+          expressionAttributeNames[attrName] = key;
+          // @ts-expect-error - TODO
+          expressionAttributeValues[attrValue] = { S: condition.contains };
+        }
+      }
+
+      return {
+        filterExpression: filterExpressions.length > 0 ? filterExpressions.join(' AND ') : undefined,
+        expressionAttributeNames,
+        expressionAttributeValues,
+      };
+    };
+
+    const whereClause = parseWhereClause(where);
+
+    const command = new ScanCommand({
       TableName: this.options.tableName,
       Limit: take ?? 100,
       ExclusiveStartKey: nextCursor ? JSON.parse(nextCursor) : undefined,
-      ScanIndexForward: orderBy ? Object.values(orderBy)[0] === 'ASC' : undefined,
-      KeyConditionExpression: `#pk = :pkval`,
-      FilterExpression: filterExpression || undefined,
-      ExpressionAttributeNames: Object.keys(expressionAttributeNames).length > 0 ? expressionAttributeNames : undefined,
+      FilterExpression: whereClause.filterExpression,
+      ExpressionAttributeNames: {
+        ...whereClause.expressionAttributeNames,
+        ...(Object.keys(expressionAttributeNames).length > 0 ? expressionAttributeNames : {}),
+      },
       ExpressionAttributeValues: {
-        ':pkval': { S: this.partitionKey }, // Assuming partition key is the ID or adjust as needed
-        ...marshall(values),
+        ...whereClause.expressionAttributeValues,
       },
       ProjectionExpression: Object.keys(expressionAttributeNames).length > 0 ? Object.keys(expressionAttributeNames).join(', ') : undefined,
     });
@@ -211,8 +239,8 @@ export class BaseModel<T extends Base = any> {
       }),
       ProjectionExpression:
         select && Object.keys(select).length > 0
-          ? // @ts-expect-error - TODO
-            Object.keys(select)
+          ? Object.keys(select)
+              // @ts-expect-error - TODO
               .filter(key => select[key])
               .map(key => `#${key}`)
               .join(', ')

@@ -17,7 +17,7 @@ type Post = {
 };
 
 const orm = createClient({
-  region: 'us-east-1', // AWS region
+  region: 'us-west-2', // AWS region
   credentials: {
     accessKeyId: '<AWS_ACCESS_KEY_ID>',
     secretAccessKey: '<AWS_SECRET_ACCESS_KEY>',
