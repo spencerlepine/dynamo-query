@@ -17,11 +17,6 @@ This package is for you if you're building data-driven applications and you're u
 
 If you're tired of writing raw SQL for querying Azure CosmosDB NoSQL database with complex filters, then this package is for you, too.
 
-<p align="center">
-  <img src="docs/demo.gif" />
-  The code above gives you query auto-completion based on the data model you specified for each container in Azure CosmosDB
-</p>
-
 ## 🤔 Use cases:
 
 - Data analytics dashboard
@@ -70,7 +65,7 @@ type Post = {
 const orm = createClient({
   database: '<DATABASE_ID>',
   connectionString: '<DB_CONNECTION_STRING>',
-  models: (t) => ({
+  models: t => ({
     user: t.createModel<User>({ container: '<USER_CONTAINER_ID>' }),
     post: t.createModel<Post>({ container: '<POST_CONTAINER_ID>' }),
   }),
@@ -83,7 +78,7 @@ const orm = createClient({
   cosmosClientOptions: {
     endpoint: '<EXAMPLE_ENDPOINT>',
   },
-  models: (t) => ({
+  models: t => ({
     user: t.createModel<User>({ container: '<USER_CONTAINER_ID>' }),
     post: t.createModel<Post>({ container: '<POST_CONTAINER_ID>' }),
   }),
@@ -219,3 +214,16 @@ const result = orm.user.delete({
 - Bulk create / update operations
 - Observability - query logging
 - Filtering on more complex data types such as enums, enum arrays, string arrays & number arrays
+
+## Contributing
+
+We welcome contributions from the community! If you're interested in contributing to this project, please read the [CONTRIBUTING.md](./CONTRIBUTING.md) file to get started.
+
+## Disclaimer
+
+This project is a fork of [Mingyang-Li/cosmox](https://github.com/Mingyang-Li/cosmox) (credit to Mingyang Li), inspired by Prisma, and is not an official AWS product. Provided "as
+is" without warranty.
+
+## License
+
+[MIT](./LICENSE)

@@ -5,13 +5,13 @@ on:
     branches: []
 
 env:
-  PNPM_VERSION: 9.7.1
   NODE_VERSION: 20.x
 
 jobs:
   test-e2e:
     runs-on: ubuntu-latest
 
+    # TODO
     # services:
     #   cosmosdb:
     #     image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator

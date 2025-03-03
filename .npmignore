@@ -1,15 +1,9 @@
-.github
-.husky
-docs
-e2e
-*.env
-.gitattributes
-.gitignore
-.npmrc
-.prettierignore
-.prettierrc
-LICENSE
-README.md
-tsup.config.ts
-vitest.config.e2e.ts
-vitest.config.unit.ts
+# Ignore everything
+*
+
+# Except for the following files and directories:
+!dist
+!package.json
+!README.md
+!LICENSE
+!CHANGELOG.md

@@ -83,7 +83,7 @@ describe(buildWhereClause.name, () => {
 
     const result = buildWhereClause(where);
     expect(result).toBe(
-      "WHERE STARTSWITH(LOWER(c.firstName), LOWER('haha')) AND LOWER(c.firstName) LIKE '%LOWER('hEEh')' AND c.lastName = 'hehe' AND c.age <= 10 AND c.age NOT IN (1, 2, 3) AND c.isSuperAdmin != true",
+      "WHERE STARTSWITH(LOWER(c.firstName), LOWER('haha')) AND LOWER(c.firstName) LIKE '%LOWER('hEEh')' AND c.lastName = 'hehe' AND c.age <= 10 AND c.age NOT IN (1, 2, 3) AND c.isSuperAdmin != true"
     );
   });
 
@@ -94,9 +94,7 @@ describe(buildWhereClause.name, () => {
     };
 
     const result = buildWhereClause(where);
-    expect(result).toBe(
-      "WHERE STARTSWITH(c.firstName, 'A') AND LOWER(c.lastName) LIKE '%LOWER('z')'",
-    );
+    expect(result).toBe("WHERE STARTSWITH(c.firstName, 'A') AND LOWER(c.lastName) LIKE '%LOWER('z')'");
   });
 
   it('should handle "in" and "notIn" conditions', () => {
@@ -106,9 +104,7 @@ describe(buildWhereClause.name, () => {
     };
 
     const result = buildWhereClause(where);
-    expect(result).toBe(
-      "WHERE c.age IN (25, 30, 35) AND c.firstName NOT IN ('Alice', 'Bob')",
-    );
+    expect(result).toBe("WHERE c.age IN (25, 30, 35) AND c.firstName NOT IN ('Alice', 'Bob')");
   });
 });
 
@@ -172,9 +168,7 @@ describe(buildQueryFindMany.name, () => {
     };
 
     const result = buildQueryFindMany(args);
-    expect(result).toBe(
-      'SELECT * FROM c WHERE c.age > 30 AND c.isSuperAdmin = true',
-    );
+    expect(result).toBe('SELECT * FROM c WHERE c.age > 30 AND c.isSuperAdmin = true');
   });
 
   it('should construct a query with order by clause', () => {
@@ -196,9 +190,7 @@ describe(buildQueryFindMany.name, () => {
     };
 
     const result = buildQueryFindMany(args);
-    expect(result).toBe(
-      'SELECT c.firstName, c.lastName FROM c WHERE c.age <= 50 ORDER BY c.createdAt ASC',
-    );
+    expect(result).toBe('SELECT c.firstName, c.lastName FROM c WHERE c.age <= 50 ORDER BY c.createdAt ASC');
   });
 
   it('should handle empty args gracefully', () => {
@@ -226,9 +218,7 @@ describe(buildQueryFindOne.name, () => {
     };
 
     const result = buildQueryFindOne(args);
-    expect(result).toBe(
-      "SELECT c.firstName, c.lastName FROM c WHERE c.id = '123'",
-    );
+    expect(result).toBe("SELECT c.firstName, c.lastName FROM c WHERE c.id = '123'");
   });
 
   it('should handle an empty select object by selecting all fields', () => {

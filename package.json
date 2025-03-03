@@ -1,27 +1,30 @@
 {
-  "name": "cosmox",
-  "version": "1.0.3",
+  "name": "dynamo-query",
+  "version": "1.0.0-beta",
   "keywords": [
-    "cosmosdb",
+    "dynamodb",
+    "aws",
     "prisma",
     "orm",
     "sdk",
-    "nosql"
+    "nosql",
+    "client",
+    "typescript",
+    "javascript",
+    "type-safe"
   ],
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Mingyang-Li/cosmox.git"
+    "url": "https://github.com/spencerlepine/dynamo-query.git"
   },
-  "homepage": "https://github.com/Mingyang-Li/cosmox#readme",
+  "homepage": "https://github.com/spencerlepine/dynamo-query#readme",
   "scripts": {
-    "format:check": "prettier --check .",
-    "format:write": "prettier --write .",
+    "TODO": "TODO",
     "test:unit": "vitest --config vitest.config.unit.ts",
     "test:e2e": "vitest --config vitest.config.e2e.ts",
     "build": "tsup --dts",
-    "dev": "tsup src/index.ts --watch",
     "prepare": "husky"
   },
   "main": "./dist/index.cjs",
@@ -39,7 +42,7 @@
       }
     }
   },
-  "packageManager": "pnpm@9.8.10",
+  "packageManager": "yarn@1.22.22",
   "dependencies": {
     "@azure/cosmos": "4.2.0",
     "neverthrow": "8.1.1",
@@ -47,10 +50,21 @@
   },
   "devDependencies": {
     "@types/node": "22.10.1",
-    "husky": "9.1.7",
-    "prettier": "3.4.2",
+    "husky": "4.3.8",
+    "lint-staged": "10.5.4",
+    "prettier": "2.8.8",
     "tsup": "8.3.5",
     "typescript": "5.7.2",
     "vitest": "2.1.8"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "**/*.(js|jsx|ts|tsx|json|css|md)": [
+      "prettier --write"
+    ]
   }
 }

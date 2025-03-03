@@ -1,32 +1,8 @@
-import {
-  CosmosClient,
-  Container,
-  Resource,
-  FeedResponse,
-  ErrorResponse,
-  ItemResponse,
-  CosmosClientOptions,
-} from '@azure/cosmos';
+import { CosmosClient, Container, Resource, FeedResponse, ErrorResponse, ItemResponse, CosmosClientOptions } from '@azure/cosmos';
 import { z } from 'zod';
 import { fromPromise } from 'neverthrow';
-import {
-  isArray,
-  isBoolean,
-  isEmptyArray,
-  isNonEmptyString,
-  isNull,
-  isNumber,
-  isObject,
-  isUndefined,
-  objectIsEmpty,
-} from '@/utils';
-import {
-  BooleanFilter,
-  DateFilter,
-  NumberFilter,
-  QueryMode,
-  StringFilter,
-} from '@/types/filters';
+import { isArray, isBoolean, isEmptyArray, isNonEmptyString, isNull, isNumber, isObject, isUndefined, objectIsEmpty } from '@/utils';
+import { BooleanFilter, DateFilter, NumberFilter, QueryMode, StringFilter } from '@/types/filters';
 
 export type TFilter = StringFilter & NumberFilter & BooleanFilter & DateFilter;
 
@@ -34,33 +10,29 @@ export const IdSchema = z
   .string()
   .min(1)
   .refine(
-    (value) => {
+    value => {
       const regex = /^\S+$/;
       return regex.test(value);
     },
     {
       message: `ID should not contain space characters, nor can it be an empty string.`,
-    },
+    }
   );
 
 /**
  * Determines which columns to retrieve from CosmosDB
  */
-export const constructFieldSelection = <T extends Base>(
-  args?: FindManyArgs<T>['select'],
-): string => {
+export const constructFieldSelection = <T extends Base>(args?: FindManyArgs<T>['select']): string => {
   if (isNull(args) || isUndefined(args) || objectIsEmpty(args)) {
     return '*';
   }
 
-  const fieldsSelected = Object.keys(args)?.filter(
-    (key) => args[key as keyof FindManyArgs<T>['select']] === true,
-  );
+  const fieldsSelected = Object.keys(args)?.filter(key => args[key as keyof FindManyArgs<T>['select']] === true);
   if (isEmptyArray(fieldsSelected)) {
     return '*';
   }
 
-  return fieldsSelected?.map((key) => `c.${key}`)?.join(', ');
+  return fieldsSelected?.map(key => `c.${key}`)?.join(', ');
 };
 
 type CreateFilterArgs<TFilterKey extends keyof TFilter> = {
@@ -73,9 +45,7 @@ type CreateFilterArgs<TFilterKey extends keyof TFilter> = {
 /**
  * Given a condition, determines the SQL filtering query
  */
-export const createFilter = <TFilterKey extends keyof TFilter>(
-  args: CreateFilterArgs<TFilterKey>,
-): string => {
+export const createFilter = <TFilterKey extends keyof TFilter>(args: CreateFilterArgs<TFilterKey>): string => {
   const { field, filterKey, value, mode } = args;
 
   if (isNull(args) || isUndefined(args) || objectIsEmpty(args)) {
@@ -147,7 +117,7 @@ export const createFilter = <TFilterKey extends keyof TFilter>(
 
   if (filterKey === 'in') {
     return `c.${field} IN (${(value as [])
-      ?.map((v) => {
+      ?.map(v => {
         if (isBoolean(v) || isNumber(v)) {
           return v;
         }
@@ -158,7 +128,7 @@ export const createFilter = <TFilterKey extends keyof TFilter>(
 
   if (filterKey === 'notIn') {
     return `c.${field} NOT IN (${(value as [])
-      ?.map((v) => {
+      ?.map(v => {
         if (isBoolean(v) || isNumber(v)) {
           return v;
         }
@@ -173,9 +143,7 @@ export const createFilter = <TFilterKey extends keyof TFilter>(
 /**
  * Constructs the "where" clause section of CosmosDB SQL query
  */
-export const buildWhereClause = <T extends Base>(
-  args: FindManyArgs<T>['where'],
-): string => {
+export const buildWhereClause = <T extends Base>(args: FindManyArgs<T>['where']): string => {
   if (isNull(args) || isUndefined(args) || objectIsEmpty(args)) {
     return '';
   }
@@ -185,9 +153,7 @@ export const buildWhereClause = <T extends Base>(
       const _filters: Pick<TFilter, 'mode'> = filters as Pick<TFilter, 'mode'>;
       const mode: QueryMode = _filters?.mode ? _filters?.mode : 'SENSITIVE';
 
-      const filterQueriesForCurrentField = Object.entries(
-        filters as TFilter,
-      )?.map(([filterKey, value]): string => {
+      const filterQueriesForCurrentField = Object.entries(filters as TFilter)?.map(([filterKey, value]): string => {
         const _filterKey = filterKey as keyof TFilter;
         const filterCondition = createFilter({
           field,
@@ -199,8 +165,8 @@ export const buildWhereClause = <T extends Base>(
       });
       return filterQueriesForCurrentField;
     })
-    ?.flatMap((item) => item)
-    ?.filter((item) => isNonEmptyString(item));
+    ?.flatMap(item => item)
+    ?.filter(item => isNonEmptyString(item));
 
   if (isEmptyArray(conditions)) {
     return '';
@@ -211,9 +177,7 @@ export const buildWhereClause = <T extends Base>(
   return query;
 };
 
-export const constructOrderByClause = <T extends Base>(
-  args?: FindManyArgs<T>['orderBy'],
-): string => {
+export const constructOrderByClause = <T extends Base>(args?: FindManyArgs<T>['orderBy']): string => {
   if (isNull(args) || isUndefined(args) || objectIsEmpty(args)) {
     return '';
   }
@@ -232,13 +196,7 @@ export const buildQueryFindMany = <T extends Base>(dto: FindManyArgs<T>) => {
 
   const orderByClause = constructOrderByClause(orderBy);
 
-  const clauses = [
-    'SELECT',
-    fieldsSelected,
-    'FROM c',
-    whereClause,
-    orderByClause,
-  ]?.filter((clause) => isNonEmptyString(clause));
+  const clauses = ['SELECT', fieldsSelected, 'FROM c', whereClause, orderByClause]?.filter(clause => isNonEmptyString(clause));
 
   const query = clauses?.join(' ');
   return query;
@@ -252,9 +210,7 @@ export const buildQueryFindOne = <T extends Base>(dto: FindOneArgs<T>) => {
   const { id } = where;
   const whereClause = `WHERE c.id = '${id}'`;
 
-  const clauses = ['SELECT', fieldsSelected, 'FROM c', whereClause]?.filter(
-    (clause) => isNonEmptyString(clause),
-  );
+  const clauses = ['SELECT', fieldsSelected, 'FROM c', whereClause]?.filter(clause => isNonEmptyString(clause));
 
   const query = clauses?.join(' ');
   return query;
@@ -295,12 +251,12 @@ export type Where<T extends Base> = {
   [K in keyof T]?: T[K] extends string | undefined
     ? StringFilter
     : T[K] extends number | undefined
-      ? NumberFilter
-      : T[K] extends boolean | undefined
-        ? BooleanFilter
-        : T[K] extends Date | undefined
-          ? DateFilter
-          : never;
+    ? NumberFilter
+    : T[K] extends boolean | undefined
+    ? BooleanFilter
+    : T[K] extends Date | undefined
+    ? DateFilter
+    : never;
 };
 
 export type FindManyArgs<T extends Base> = {
@@ -336,23 +292,17 @@ export class BaseModel<T extends Base = typeof initial> {
   fields: AutoFields = { ...defaultFields };
 
   constructor(private readonly options: ModelOptions) {
-    this.client = options.client
-      .database(options.database)
-      .container(options.container);
+    this.client = options.client.database(options.database).container(options.container);
   }
 
   /** Find many items with pagination and type-safe filters */
-  public async findMany(
-    args: FindManyArgs<Required<T>>,
-  ): Promise<FindManyResponse<T>> {
+  public async findMany(args: FindManyArgs<Required<T>>): Promise<FindManyResponse<T>> {
     const { take, nextCursor } = args;
 
     // validate "take" if provided by user
     if (!isNull(take) && !isUndefined(take)) {
       if (z.number().int().min(1).safeParse(take).success === false) {
-        throw new Error(
-          `Please make sure "take" is a positive integer. You provided ${take} `,
-        );
+        throw new Error(`Please make sure "take" is a positive integer. You provided ${take} `);
       }
     }
 
@@ -360,17 +310,14 @@ export class BaseModel<T extends Base = typeof initial> {
 
     const query = buildQueryFindMany(args);
 
-    const result = await fromPromise<
-      FeedResponse<CosmosResource<T>>,
-      ErrorResponse
-    >(
+    const result = await fromPromise<FeedResponse<CosmosResource<T>>, ErrorResponse>(
       container.items
         .query(query, {
           continuationToken: nextCursor,
           maxItemCount: take ?? 100,
         })
         .fetchNext(),
-      (e) => e as ErrorResponse,
+      e => e as ErrorResponse
     );
     if (result.isErr()) {
       const message = `Failed to retrieve items from db. ${result.error?.message}`;
@@ -416,16 +363,13 @@ export class BaseModel<T extends Base = typeof initial> {
 
     const container: Container = this.client;
 
-    const result = await fromPromise<
-      FeedResponse<CosmosResource<T>>,
-      ErrorResponse
-    >(
+    const result = await fromPromise<FeedResponse<CosmosResource<T>>, ErrorResponse>(
       container.items
         .query(query, {
           maxItemCount: 1,
         })
         .fetchAll(),
-      (e) => e as ErrorResponse,
+      e => e as ErrorResponse
     );
     if (result.isErr()) {
       const message = `Failed to retrieve item form db. ${result.error?.message}`;
@@ -455,23 +399,16 @@ export class BaseModel<T extends Base = typeof initial> {
     const { data } = args;
 
     if (!isObject(data)) {
-      throw new Error(
-        `Please provide an object as payload. You provided "${data}"`,
-      );
+      throw new Error(`Please provide an object as payload. You provided "${data}"`);
     }
 
     if (objectIsEmpty(data)) {
-      throw new Error(
-        `Please provide an non-empty object as payload. You provided "{}"`,
-      );
+      throw new Error(`Please provide an non-empty object as payload. You provided "{}"`);
     }
 
     const container: Container = this.client;
 
-    const result = await fromPromise<ItemResponse<T>, ErrorResponse>(
-      container.items.create(data),
-      (e) => e as ErrorResponse,
-    );
+    const result = await fromPromise<ItemResponse<T>, ErrorResponse>(container.items.create(data), e => e as ErrorResponse);
 
     if (result.isErr()) {
       const message = `Failed to create item in db. ${result.error?.message}`;
@@ -495,15 +432,11 @@ export class BaseModel<T extends Base = typeof initial> {
     }
 
     if (!isObject(data)) {
-      throw new Error(
-        `Please provide an object as payload. You provided "${data}"`,
-      );
+      throw new Error(`Please provide an object as payload. You provided "${data}"`);
     }
 
     if (objectIsEmpty(data)) {
-      throw new Error(
-        `Please provide an non-empty object as payload. You provided "{}"`,
-      );
+      throw new Error(`Please provide an non-empty object as payload. You provided "{}"`);
     }
 
     // check if item in db
@@ -512,12 +445,10 @@ export class BaseModel<T extends Base = typeof initial> {
         where,
         select: { id: true },
       }),
-      (e) => e as Error,
+      e => e as Error
     );
     if (checkItemInDb.isErr()) {
-      throw new Error(
-        `Failed to update item in db. The item you're trying to update cannot be found.`,
-      );
+      throw new Error(`Failed to update item in db. The item you're trying to update cannot be found.`);
     }
 
     // replace item
@@ -528,7 +459,7 @@ export class BaseModel<T extends Base = typeof initial> {
         ...existingItem,
         ...data,
       }),
-      (e) => e as ErrorResponse,
+      e => e as ErrorResponse
     );
 
     if (replaceItem.isErr()) {
@@ -556,20 +487,15 @@ export class BaseModel<T extends Base = typeof initial> {
         where,
         select: { id: true },
       }),
-      (e) => e as Error,
+      e => e as Error
     );
     if (checkItemInDb.isErr()) {
-      throw new Error(
-        `Failed to delete item in db. The item you're trying to delete cannot be found.`,
-      );
+      throw new Error(`Failed to delete item in db. The item you're trying to delete cannot be found.`);
     }
 
     // delete item
     const container: Container = this.client;
-    const deleteItem = await fromPromise(
-      container.item(id, id).delete(),
-      (e) => e as ErrorResponse,
-    );
+    const deleteItem = await fromPromise(container.item(id, id).delete(), e => e as ErrorResponse);
 
     if (deleteItem.isErr()) {
       const message = `Failed to delete item. ${deleteItem.error?.message}`;
@@ -581,10 +507,7 @@ export class BaseModel<T extends Base = typeof initial> {
 }
 
 interface Builder {
-  createModel: <T extends Base>(args: {
-    container: string;
-    options?: Pick<ModelOptions, 'fields'>;
-  }) => BaseModel<T>;
+  createModel: <T extends Base>(args: { container: string; options?: Pick<ModelOptions, 'fields'> }) => BaseModel<T>;
 }
 
 /** Default client configuration - for example the connection string setting, and the database name. */
@@ -604,13 +527,9 @@ export interface Options<M extends { [K: string]: BaseModel }> {
   models: (builder: Builder) => M;
 }
 
-export type DB<M extends Record<string, BaseModel>> = ReturnType<
-  Options<M>['models']
->;
+export type DB<M extends Record<string, BaseModel>> = ReturnType<Options<M>['models']>;
 
-export const createClient = <M extends Record<string, BaseModel>>(
-  options: Options<M>,
-): DB<M> => {
+export const createClient = <M extends Record<string, BaseModel>>(options: Options<M>): DB<M> => {
   let client: CosmosClient;
   if (options?.cosmosClientOptions) {
     client = new CosmosClient(options?.cosmosClientOptions);
