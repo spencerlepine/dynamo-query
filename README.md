@@ -284,7 +284,7 @@ We welcome contributions from the community! If you're interested in contributin
 
 ## Disclaimer
 
-This project is a fork of [Mingyang-Li/dynamo-query](https://github.com/Mingyang-Li/dynamo-query) (credit to Mingyang Li), inspired by Prisma, and is not an official AWS product.
+This project is a fork of [Mingyang-Li/cosmox](https://github.com/Mingyang-Li/cosmox) (credit to [@Mingyang-Li](https://github.com/Mingyang-Li)), inspired by Prisma, and is not an official AWS product.
 Provided "as is" without warranty.
 
 ## License
