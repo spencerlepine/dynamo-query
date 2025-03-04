@@ -1,7 +1,9 @@
 {
-  "name": "printify-typescript-examples",
+  "name": "dynamo-query-local-testing",
   "scripts": {
-    "start": "tsc && node app.js"
+    "execute": "tsc && node app.js",
+    "rebundle": "cd .. && yarn build && rm -rf local/node_modules/dynamo-query/dist && mkdir local/node_modules/dynamo-query/dist && cp dist/* local/node_modules/dynamo-query/dist && cd local",
+    "start": "yarn rebundle && yarn execute"
   },
   "dependencies": {
     "dynamo-query": "*"

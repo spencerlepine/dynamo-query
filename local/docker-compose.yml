@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  dynamo-local:
+    image: amazon/dynamodb-local:latest
+    platform: linux/amd64
+    container_name: dynamo-local
+    ports:
+      - "8000:8000"
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    volumes:
+      - dynamo_data:/home/dynamodblocal/data
+    working_dir: /home/dynamodblocal
+    user: root
+    restart: unless-stopped
+
+volumes:
+  dynamo_data:

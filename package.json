@@ -1,6 +1,6 @@
 {
   "name": "dynamo-query",
-  "version": "1.0.0-beta",
+  "version": "1.0.1-beta",
   "keywords": [
     "dynamodb",
     "aws",
@@ -19,10 +19,13 @@
     "type": "git",
     "url": "https://github.com/spencerlepine/dynamo-query.git"
   },
+  "bugs": {
+    "url": "https://github.com/spencerlepine/dynamo-query.git"
+  },
   "homepage": "https://github.com/spencerlepine/dynamo-query#readme",
   "scripts": {
-    "TODO": "TODO",
-    "test:unit": "jest",
+    "test": "echo \"Please run 'yarn test:unit' or 'yarn test:e2e'\" && exit 0",
+    "test:unit": "jest src",
     "test:e2e": "jest e2e",
     "build": "tsup --dts"
   },
@@ -41,6 +44,14 @@
       }
     }
   },
+  "files": [
+    "dist/index.cjs",
+    "dist/index.cjs.map",
+    "dist/index.d.cts",
+    "dist/index.js",
+    "CHANGELOG.md",
+    "README.md"
+  ],
   "packageManager": "yarn@1.22.22",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.758.0",
