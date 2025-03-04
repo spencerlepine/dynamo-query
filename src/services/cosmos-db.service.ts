@@ -1,4 +1,16 @@
-import { DynamoDBClient, QueryCommand, GetItemCommand, PutItemCommand, UpdateItemCommand, DeleteItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
+// Examples: https://github.com/awsdocs/aws-doc-sdk-examples/blob/main/javascriptv3/example_code/dynamodb/README.md
+
+import {
+  DynamoDBClient,
+  QueryCommand,
+  GetItemCommand,
+  PutItemCommand,
+  UpdateItemCommand,
+  DeleteItemCommand,
+  ScanCommand,
+  ScanCommandInput,
+  AttributeValue,
+} from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { z } from 'zod';
 import { fromPromise } from 'neverthrow';
@@ -92,127 +104,86 @@ export class BaseModel<T extends Base = any> {
     }
   }
 
-  private buildExpressionAttributeNames(select?: Partial<Record<keyof T, boolean>>): Record<string, string> {
-    if (!select || objectIsEmpty(select)) {
-      return {};
-    }
-    return (
-      Object.keys(select)
-        // @ts-expect-error - TODO
-        .filter(key => select[key])
-        .reduce((acc, key) => ({ ...acc, [`#${key}`]: key }), {})
-    );
-  }
-
-  private buildFilterExpression(where?: Where<T>): { expression: string; values: Record<string, any> } {
-    if (!where || objectIsEmpty(where)) {
-      return { expression: '', values: {} };
-    }
-
-    const expressions: string[] = [];
-    const values: Record<string, any> = {};
-    let paramCount = 0;
-
-    for (const [field, filter] of Object.entries(where)) {
-      const filterEntries = Object.entries(filter as object);
-      for (const [key, value] of filterEntries) {
-        const param = `:val${paramCount++}`;
-        switch (key) {
-          case 'equals':
-            expressions.push(`#${field} = ${param}`);
-            values[param] = value;
-            break;
-          case 'not':
-            expressions.push(`#${field} <> ${param}`);
-            values[param] = value;
-            break;
-          case 'gt':
-            expressions.push(`#${field} > ${param}`);
-            values[param] = value;
-            break;
-          case 'gte':
-            expressions.push(`#${field} >= ${param}`);
-            values[param] = value;
-            break;
-          case 'lt':
-            expressions.push(`#${field} < ${param}`);
-            values[param] = value;
-            break;
-          case 'lte':
-            expressions.push(`#${field} <= ${param}`);
-            values[param] = value;
-            break;
-          case 'contains':
-            expressions.push(`contains(#${field}, ${param})`);
-            values[param] = value;
-            break;
-          // Add more filter types as needed
-        }
-      }
-    }
-
-    return {
-      expression: expressions.join(' AND '),
-      values,
-    };
-  }
-
   public async findMany(args: FindManyArgs<T>): Promise<FindManyResponse<T>> {
-    const { where, take, nextCursor, select, orderBy } = args;
+    const { where, take, nextCursor, orderBy } = args;
+    // TODO - select?
 
     if (take && !z.number().int().min(1).safeParse(take).success) {
       throw new Error(`Please make sure "take" is a positive integer. You provided ${take}`);
     }
 
-    const expressionAttributeNames = this.buildExpressionAttributeNames(select);
-    const { expression: filterExpression, values } = this.buildFilterExpression(where);
-
-    const parseWhereClause = (where = {}) => {
-      const filterExpressions = [];
-      const expressionAttributeNames = {};
-      const expressionAttributeValues = {};
-
-      for (const [key, condition] of Object.entries(where)) {
-        // @ts-expect-error - TODO
-        if (condition.contains) {
-          const attrName = `#${key}`;
-          const attrValue = `:${key}Val`;
-          filterExpressions.push(`contains(${attrName}, ${attrValue})`);
-          // @ts-expect-error - TODO
-          expressionAttributeNames[attrName] = key;
-          // @ts-expect-error - TODO
-          expressionAttributeValues[attrValue] = { S: condition.contains };
-        }
-      }
-
-      return {
-        filterExpression: filterExpressions.length > 0 ? filterExpressions.join(' AND ') : undefined,
-        expressionAttributeNames,
-        expressionAttributeValues,
-      };
-    };
-
-    const whereClause = parseWhereClause(where);
-
-    const command = new ScanCommand({
+    const params: ScanCommandInput = {
       TableName: this.options.tableName,
       Limit: take ?? 100,
-      ExclusiveStartKey: nextCursor ? JSON.parse(nextCursor) : undefined,
-      ...(whereClause.filterExpression && {
-        FilterExpression: whereClause.filterExpression,
-      }),
-      ...(Object.keys(expressionAttributeNames).length > 0 && {
-        ExpressionAttributeNames: {
-          ...whereClause.expressionAttributeNames,
-          ...expressionAttributeNames,
-        },
-      }),
-      ExpressionAttributeValues: {
-        ...whereClause.expressionAttributeValues,
-      },
-      ProjectionExpression: Object.keys(expressionAttributeNames).length > 0 ? Object.keys(expressionAttributeNames).join(', ') : undefined,
-    });
+    };
 
+    if (nextCursor) {
+      params.ExclusiveStartKey = JSON.parse(nextCursor);
+    }
+
+    if (where && Object.keys(where).length > 0) {
+      const filterExpression: string[] = [];
+      const expressionAttributeNames: { [key: string]: string } = {};
+      const expressionAttributeValues: { [key: string]: AttributeValue } = {};
+      let placeholderCounter = 0;
+
+      const prepareValue = (v: any): AttributeValue => {
+        if (v instanceof Date) return { S: v.toISOString() };
+        if (typeof v === 'string') return { S: v };
+        if (typeof v === 'number') return { N: v.toString() };
+        if (typeof v === 'boolean') return { BOOL: v };
+        throw new Error(`Unsupported value type: ${typeof v}`);
+      };
+
+      const operatorSymbols: Record<string, string> = {
+        equals: '=',
+        not: '<>',
+        gt: '>',
+        gte: '>=',
+        lt: '<',
+        lte: '<=',
+      };
+
+      Object.entries(where as Record<string, { [key: string]: any }>).forEach(([field, condition]) => {
+        if (!condition || typeof condition !== 'object' || Object.keys(condition).length === 0) {
+          throw new Error(`Invalid condition for field "${field}". Expected a non-empty object.`);
+        }
+
+        const keys = Object.keys(condition);
+        const operator = keys[0] as string;
+        const value = condition[operator];
+
+        if (value === undefined) {
+          throw new Error(`Value for operator "${operator}" in field "${field}" is undefined.`);
+        }
+
+        const fieldPlaceholder = `#${field}`;
+        const valuePlaceholder = `:val${placeholderCounter++}`;
+        expressionAttributeNames[fieldPlaceholder] = field;
+        expressionAttributeValues[valuePlaceholder] = prepareValue(value);
+
+        if (operator in operatorSymbols) {
+          filterExpression.push(`${fieldPlaceholder} ${operatorSymbols[operator]} ${valuePlaceholder}`);
+        } else if (operator === 'contains') {
+          filterExpression.push(`contains(${fieldPlaceholder}, ${valuePlaceholder})`);
+        } else if (operator === 'startsWith') {
+          filterExpression.push(`begins_with(${fieldPlaceholder}, ${valuePlaceholder})`);
+        } else if (operator === 'endsWith') {
+          // TODO - optimize? `endsWith` is not supported by DynamoDB SDK..
+          filterExpression.push(`contains(${fieldPlaceholder}, ${valuePlaceholder})`);
+        } else {
+          throw new Error(`Unsupported operator: ${operator}`);
+        }
+      });
+
+      if (filterExpression.length > 0) {
+        params.FilterExpression = filterExpression.join(' AND ');
+        params.ExpressionAttributeNames = expressionAttributeNames;
+        params.ExpressionAttributeValues = expressionAttributeValues;
+      }
+    }
+
+    const command = new ScanCommand(params);
     const result = await fromPromise(this.options.client.send(command), e => e as Error);
 
     if (result.isErr()) {
@@ -227,7 +198,8 @@ export class BaseModel<T extends Base = any> {
   }
 
   public async findOne(args: FindOneArgs<T>): Promise<T> {
-    const { where, select } = args;
+    const { where } = args;
+    // TODO - select
 
     const validateId = IdSchema.safeParse(where.id);
     if (!validateId.success) {
@@ -240,15 +212,7 @@ export class BaseModel<T extends Base = any> {
         [this.partitionKey]: where.id,
         ...(this.sortKey ? { [this.sortKey]: where.id } : {}),
       }),
-      ProjectionExpression:
-        select && Object.keys(select).length > 0
-          ? Object.keys(select)
-              // @ts-expect-error - TODO
-              .filter(key => select[key])
-              .map(key => `#${key}`)
-              .join(', ')
-          : undefined,
-      ExpressionAttributeNames: this.buildExpressionAttributeNames(select),
+      // ExpressionAttributeNames: {}, // TODO - feature?
     });
 
     const result = await fromPromise(this.options.client.send(command), e => e as Error);

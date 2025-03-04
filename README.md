@@ -56,7 +56,6 @@ type Post = {
 };
 
 // Example 1 - Using connection string
-// TODO
 const orm = createClient({
   region: 'us-east-1', // AWS region
   credentials: {
@@ -90,14 +89,12 @@ const orm = createClient({
     user: t.createModel<User>({
       tableName: 'Users',
       partitionKey: 'userId',
-      // TODO - only boolean.
       options: { fields: ['name', 'email', 'createdAt'] },
     }),
     post: t.createModel<Post>({
       tableName: 'Posts',
       partitionKey: 'postId',
       sortKey: 'createdAt',
-      // TODO
       options: { fields: ['title', 'content', 'authorId'] },
     }),
   }),
@@ -135,8 +132,6 @@ const orm = createClient({
 // Notes:
 // - The 'partitionKey' is required and must match an attribute in your table
 // - The 'sortKey' is optional and enables range queries when specified
-// - When using locally, set endpoint to 'http://localhost:8000' (or your DynamoDB Local port)
-// - Credentials are required even for local development, but can be dummy values
 // - Tables must be created beforehand with matching partition/sort keys
 ```
 
@@ -266,17 +261,10 @@ const result = orm.user.delete({
 ## 📝 Roadmap
 
 - Core Query builder
+- Comprehensive unit/e2e test coverage
 - Bulk create / update operations
 - Observability - query logging
 - Filtering on more complex data types such as enums, enum arrays, string arrays & number arrays
-
-```
-Notes:
-yarn build && rm -rf local/node_modules/dynamo-query/dist && mkdir local/node_modules/dynamo-query/dist && cp dist/* local/node_modules/dynamo-query/dist
-
-brew install act
-act --container-architecture linux/amd64
-```
 
 ## Contributing
 
@@ -284,8 +272,8 @@ We welcome contributions from the community! If you're interested in contributin
 
 ## Disclaimer
 
-This project is a fork of [Mingyang-Li/cosmox](https://github.com/Mingyang-Li/cosmox) (credit to [@Mingyang-Li](https://github.com/Mingyang-Li)), inspired by Prisma, and is not an official AWS product.
-Provided "as is" without warranty.
+This project is a fork of [Mingyang-Li/cosmox](https://github.com/Mingyang-Li/cosmox) (credit to [@Mingyang-Li](https://github.com/Mingyang-Li)), inspired by Prisma, and is not an
+official AWS product. Provided "as is" without warranty.
 
 ## License
 
