@@ -1,4 +1,4 @@
-import { createClient } from '../src/services/cosmos-db.service';
+import { createClient } from '../src/services/dynamo-db.service';
 import { DynamoDBClient, CreateTableCommand, ScalarAttributeType, KeyType } from '@aws-sdk/client-dynamodb';
 
 const REGION = 'us-east-1';

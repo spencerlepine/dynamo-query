@@ -1,5 +1,5 @@
 // dynamo-service.spec.js
-import { BaseModel, createClient } from './cosmos-db.service';
+import { BaseModel, createClient } from './dynamo-db.service';
 import { DynamoDBClient, ScanCommand, GetItemCommand, PutItemCommand, UpdateItemCommand, DeleteItemCommand } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 
