@@ -7,6 +7,7 @@
   <a href="#"><img src="https://img.shields.io/npm/v/dynamo-query.svg?style=flat" /></a>
   <a href="#"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" /></a>
+  <a href="#"><img src="https://www.repostatus.org/badges/latest/inactive.svg" /></a>
   <br />
   <br />
 </div>
